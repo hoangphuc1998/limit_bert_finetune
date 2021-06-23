@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-def read_squad(path):
+def read_squad(path, training=True):
     '''
     This function is written by Huggingface team
     https://huggingface.co/transformers/custom_datasets.html
@@ -13,17 +13,24 @@ def read_squad(path):
     contexts = []
     questions = []
     answers = []
+    ids = []
     for group in squad_dict['data']:
         for passage in group['paragraphs']:
             context = passage['context']
             for qa in passage['qas']:
                 question = qa['question']
-                for answer in qa['answers']:
+                if training:
+                    for answer in qa['answers']:
+                        contexts.append(context)
+                        questions.append(question)
+                        answers.append(answer)
+                        ids.append(qa['id'])
+                else:
                     contexts.append(context)
                     questions.append(question)
-                    answers.append(answer)
-
-    return contexts, questions, answers
+                    answers.append(qa['answers'])
+                    ids.append(qa['id'])
+    return contexts, questions, answers, ids
 
 def add_end_idx(answers, contexts):
     '''
