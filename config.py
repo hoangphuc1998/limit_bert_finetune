@@ -13,6 +13,7 @@ class QAConfig():
 
         # Training
         self.parser.add_argument("--lr", type=float, default=3e-5, help="Learning rate")
+        self.parser.add_argument("--bz", type=int, default=16, help="Batch size")
 
     def parse_args(self):
         return self.parser.parse_knowns_args()
