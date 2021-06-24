@@ -6,7 +6,7 @@ class SquadDataset(torch.utils.data.Dataset):
         super().__init__()
         self.training = training
         self.contexts, self.questions, self.answers, self.ids = read_squad(json_file, training)
-        self.encodings = tokenizer(self.contexts, self.questions, trucation=True, padding=True)
+        self.encodings = tokenizer(self.contexts, self.questions, truncation=True, padding=True)
         if training:
             add_end_idx(self.answers, self.contexts)
             add_token_positions(self.encodings, self.answers, tokenizer)
@@ -15,7 +15,7 @@ class SquadDataset(torch.utils.data.Dataset):
         d = {key: torch.tensor(value[idx]) for key, value in self.encodings.items()}
         if not self.training:
             d["id"] = self.ids[idx]
-            d['answers'] = self.answers[idx]
+            #d['answers'] = [self.answers[idx]]
         return d
 
     def __len__(self):

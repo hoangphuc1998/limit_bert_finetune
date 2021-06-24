@@ -9,7 +9,7 @@ class QAModel(pl.LightningModule):
         self.config = config
         self.model = AutoModelForQuestionAnswering.from_pretrained(config.model_type)
         self.tokenizer = tokenizer
-        self.metric = datasets.load_metric("squadv2")
+        self.metric = datasets.load_metric("squad_v2")
     
     def forward(self, contexts, questions):
         '''
@@ -23,7 +23,7 @@ class QAModel(pl.LightningModule):
         start_positions = batch["start_positions"]
         end_positions = batch["end_positions"]
         outputs = self.model(input_ids=input_ids, attention_mask=attention_mask, start_positions=start_positions, end_positions=end_positions)
-        loss = outputs[0]
+        loss = outputs.loss
         self.log("train/loss", loss, prog_bar=True, logger=True)
         return loss
 
@@ -31,10 +31,11 @@ class QAModel(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         input_ids = batch["input_ids"]
         attention_mask = batch["attention_mask"]
-        start_scores, end_scores = self.model(input_ids=input_ids, attention_mask=attention_mask)
+        outputs = self.model(input_ids=input_ids, attention_mask=attention_mask)
+        start_scores, end_scores = outputs.start_logits, outputs.end_logits
         answer_starts = torch.argmax(start_scores)
         answer_ends = torch.argmax(end_scores) + 1
-        question_ids = batch["ids"]
+        question_ids = batch["id"]
         gold_answers = batch["answers"]
         pred_answers = []
         for question_id, input_id, answer_start, answer_end in zip(question_ids, input_ids, answer_starts, answer_ends):
@@ -46,7 +47,7 @@ class QAModel(pl.LightningModule):
         score = self.metric.compute()
         self.log("val/EM", score["exact"], logger=True)
         self.log("val/F1", score["F1"], logger=True)
-        self.metric = datasets.load_metric("squadv2")
+        self.metric = datasets.load_metric("squad_v2")
     
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.config.lr)

@@ -23,4 +23,4 @@ class QAConfig():
         self.parser.add_argument("--exp", type=str, default="bert-base-exp0", help="Wandb experiment name")
 
     def parse_args(self):
-        return self.parser.parse_knowns_args()
+        return self.parser.parse_known_args()[0]

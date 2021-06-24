@@ -14,10 +14,10 @@ if __name__ == "__main__":
     tokenizer = AutoTokenizer.from_pretrained(config.model_type)
     save_path = os.path.join(config.save_folder, config.project, config.exp)
     # Save config file
-    os.makedirs(save_path)
-    json.dump(config, open(os.path.join(save_path, "config.json")))
+    os.makedirs(save_path, exist_ok=True)
+    json.dump(vars(config), open(os.path.join(save_path, "config.json"), "w"))
     # Callbacks
-    model_checkpoint = ModelCheckpoint(dir_path=save_path, monitor="val/F1", mode="max", save_last=True)
+    model_checkpoint = ModelCheckpoint(dirpath=save_path, monitor="val/F1", mode="max", save_last=True)
     lr_logging = LearningRateMonitor(logging_interval="step")
     wandb_logger = WandbLogger(project=config.project, name=config.exp, config=vars(config))
 
