@@ -15,7 +15,7 @@ class SquadDataset(torch.utils.data.Dataset):
         d = {key: torch.tensor(value[idx]) for key, value in self.encodings.items()}
         if not self.training:
             d["id"] = self.ids[idx]
-            #d['answers'] = [self.answers[idx]]
+            d['answers'] = self.answers[idx]
         return d
 
     def __len__(self):
