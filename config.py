@@ -15,7 +15,7 @@ class QAConfig():
         self.parser.add_argument("--seed", type=int, default=42, help="Random seed number")
         self.parser.add_argument("--epochs", type=int, default=10, help="Number of epochs")
         self.parser.add_argument("--lr", type=float, default=3e-5, help="Learning rate")
-        self.parser.add_argument("--bz", type=int, default=16, help="Batch size")
+        self.parser.add_argument("--bz", type=int, default=4, help="Batch size")
 
         # Save folder
         self.parser.add_argument("--save_folder", type=str, default="/content/drive/MyDrive/NLP/")

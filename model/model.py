@@ -33,20 +33,24 @@ class QAModel(pl.LightningModule):
         attention_mask = batch["attention_mask"]
         outputs = self.model(input_ids=input_ids, attention_mask=attention_mask)
         start_scores, end_scores = outputs.start_logits, outputs.end_logits
-        answer_starts = torch.argmax(start_scores)
-        answer_ends = torch.argmax(end_scores) + 1
+        answer_starts = torch.argmax(start_scores, dim=-1)
+        answer_ends = torch.argmax(end_scores, dim=-1) + 1
         question_ids = batch["id"]
-        gold_answers = batch["answers"]
+        gold_answers = []
         pred_answers = []
-        for question_id, input_id, answer_start, answer_end in zip(question_ids, input_ids, answer_starts, answer_ends):
+        for question_id, input_id, answer_start, answer_end, gold_answer in zip(question_ids, input_ids, answer_starts, answer_ends, batch["answers"]):
             answer_text = self.tokenizer.decode(input_id[answer_start:answer_end])
             pred_answers.append({'prediction_text': answer_text, 'id': question_id, 'no_answer_probability': 0.0})
-        self.metric.add_batch(predictions=pred_answers, references=gold_answers)
+            gold_answers.append({'answers': gold_answer, 'id': question_id})
+        return gold_answers, pred_answers
 
-    def validation_epoch_end(self):
-        score = self.metric.compute()
+    def validation_epoch_end(self, outputs):
+        gold_answers, pred_answers = zip(*outputs)
+        gold_answers = gold_answers[0]
+        pred_answers = pred_answers[0]
+        score = self.metric.compute(predictions=pred_answers, references=gold_answers)
         self.log("val/EM", score["exact"], logger=True)
-        self.log("val/F1", score["F1"], logger=True)
+        self.log("val/F1", score["f1"], logger=True)
         self.metric = datasets.load_metric("squad_v2")
     
     def configure_optimizers(self):

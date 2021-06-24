@@ -9,4 +9,4 @@ def my_collate(batch):
     for k, v in d.items():
         if k != "answers":
             d[k] = default_collate(v)
-    return d
+    return dict(d)
