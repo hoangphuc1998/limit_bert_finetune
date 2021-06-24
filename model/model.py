@@ -1,13 +1,14 @@
 import pytorch_lightning as pl
 import datasets
 import torch
+from transformers import AutoModelForQuestionAnswering
 
-class QAModelTrainer(pl.LightningModule):
-    def __init__(self, config, model, tokernizer):
+class QAModel(pl.LightningModule):
+    def __init__(self, config, tokenizer):
         super().__init__()
         self.config = config
-        self.model = model
-        self.tokernizer = tokernizer
+        self.model = AutoModelForQuestionAnswering.from_pretrained(config.model_type)
+        self.tokenizer = tokenizer
         self.metric = datasets.load_metric("squadv2")
     
     def forward(self, contexts, questions):
@@ -46,3 +47,7 @@ class QAModelTrainer(pl.LightningModule):
         self.log("val/EM", score["exact"], logger=True)
         self.log("val/F1", score["F1"], logger=True)
         self.metric = datasets.load_metric("squadv2")
+    
+    def configure_optimizers(self):
+        optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.config.lr)
+        return optimizer
