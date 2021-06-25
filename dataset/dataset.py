@@ -2,11 +2,11 @@ import torch
 from .preprocess import *
 
 class SquadDataset(torch.utils.data.Dataset):
-    def __init__(self, json_file, tokenizer, training=True):
+    def __init__(self, json_file, tokenizer, training=True, max_length=128):
         super().__init__()
         self.training = training
         self.contexts, self.questions, self.answers, self.ids = read_squad(json_file, training)
-        self.encodings = tokenizer(self.contexts, self.questions, truncation=True, padding=True)
+        self.encodings = tokenizer(self.contexts, self.questions, truncation=True, padding=True, max_length=max_length)
         if training:
             add_end_idx(self.answers, self.contexts)
             add_token_positions(self.encodings, self.answers, tokenizer)

@@ -12,8 +12,8 @@ class SquadDataModule(pl.LightningDataModule):
         self.tokenizer = tokenizer
 
     def setup(self, stage):
-        self.train_dataset = SquadDataset(self.config.train_file, self.tokenizer, training=True)
-        self.val_dataset = SquadDataset(self.config.val_file, self.tokenizer, training=False)
+        self.train_dataset = SquadDataset(self.config.train_file, self.tokenizer, training=True, max_length=self.config.max_length)
+        self.val_dataset = SquadDataset(self.config.val_file, self.tokenizer, training=False, max_length=self.config.max_length)
     
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.config.bz, shuffle=True, collate_fn=my_collate)
