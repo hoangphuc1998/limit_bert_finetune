@@ -51,8 +51,10 @@ class QAModel(pl.LightningModule):
         score = self.metric.compute(predictions=pred_answers, references=gold_answers)
         self.log("val/EM", score["exact"], logger=True)
         self.log("val/F1", score["f1"], logger=True)
+        print("Exact match: " + str(score["exact"]))
+        print("F1: " + str(score["f1"]))
         self.metric = datasets.load_metric("squad_v2")
-    
+
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.config.lr)
         return optimizer
