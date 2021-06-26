@@ -10,7 +10,7 @@ class QAConfig():
 
         # Model
         self.parser.add_argument("--model_type", type=str, default="bert-large-uncased", help="Model type")
-        self.parser.add_argument("--max_length", type=int, default=128, help="Max sequence length")
+        self.parser.add_argument("--max_length", type=int, default=256, help="Max sequence length")
 
         # Training
         self.parser.add_argument("--seed", type=int, default=42, help="Random seed number")
@@ -21,7 +21,7 @@ class QAConfig():
         # Save folder
         self.parser.add_argument("--save_folder", type=str, default="/content/drive/MyDrive/NLP/")
         self.parser.add_argument("--project", type=str, default="squad_qa", help="Wandb project name")
-        self.parser.add_argument("--exp", type=str, default="bert-base-exp0", help="Wandb experiment name")
+        self.parser.add_argument("--exp", type=str, default="bert-large-exp1", help="Wandb experiment name")
 
     def parse_args(self):
         return self.parser.parse_known_args()[0]
