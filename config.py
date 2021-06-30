@@ -10,13 +10,15 @@ class QAConfig():
 
         # Model
         self.parser.add_argument("--model_type", type=str, default="bert-large-uncased", help="Model type")
-        self.parser.add_argument("--max_length", type=int, default=256, help="Max sequence length")
+        self.parser.add_argument("--max_length", type=int, default=300, help="Max sequence length")
 
         # Training
         self.parser.add_argument("--seed", type=int, default=42, help="Random seed number")
         self.parser.add_argument("--epochs", type=int, default=10, help="Number of epochs")
         self.parser.add_argument("--lr", type=float, default=5e-5, help="Learning rate")
-        self.parser.add_argument("--bz", type=int, default=4, help="Batch size")
+        self.parser.add_argument("--bz", type=int, default=8, help="Batch size")
+        self.parser.add_argument("--freeze_steps", type=int, default=500, help="Freeze main model to train qa head")
+        self.parser.add_argument("--grad_clip", type=float, default=2.0, help="Gradient clipping value")
 
         # Save folder
         self.parser.add_argument("--save_folder", type=str, default="/content/drive/MyDrive/NLP/")
