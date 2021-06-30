@@ -67,7 +67,7 @@ class QAModel(pl.LightningModule):
     def freeze_model(self):
         if self.freeze == False:
             for name, child in self.model.named_children():
-                if "qa_output" not in name:
+                if name == "bert":
                     for param in child.parameters():
                         param.requires_grad = False
             self.freeze = True

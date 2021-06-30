@@ -17,7 +17,7 @@ class QAConfig():
         self.parser.add_argument("--epochs", type=int, default=10, help="Number of epochs")
         self.parser.add_argument("--lr", type=float, default=5e-5, help="Learning rate")
         self.parser.add_argument("--bz", type=int, default=8, help="Batch size")
-        self.parser.add_argument("--freeze_steps", type=int, default=500, help="Freeze main model to train qa head")
+        self.parser.add_argument("--freeze_steps", type=int, default=2000, help="Freeze main model to train qa head")
         self.parser.add_argument("--grad_clip", type=float, default=2.0, help="Gradient clipping value")
 
         # Save folder
