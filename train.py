@@ -1,5 +1,5 @@
 from model import QAModel
-from dataset import SquadDataModule
+from dataset import CoNLLDataModule
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
 from transformers import AutoTokenizer
@@ -22,7 +22,7 @@ if __name__ == "__main__":
     wandb_logger = WandbLogger(project=config.project, name=config.exp, config=vars(config))
 
     # Training
-    squad_dm = SquadDataModule(config, tokenizer)
+    squad_dm = CoNLLDataModule(config, tokenizer)
     qa_model = QAModel(config, tokenizer)
     trainer = pl.Trainer(callbacks=[model_checkpoint, lr_logging], logger=wandb_logger, gpus=-1, check_val_every_n_epoch=1)
     trainer.fit(qa_model, squad_dm)

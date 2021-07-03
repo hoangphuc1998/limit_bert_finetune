@@ -2,3 +2,4 @@ transformers
 pytorch-lightning
 datasets
 wandb
+torchmetrics

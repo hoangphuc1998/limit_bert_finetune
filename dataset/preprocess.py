@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+import numpy as np
 
 def read_squad(path, training=True):
     '''
@@ -71,3 +72,15 @@ def add_token_positions(encodings, answers, tokenizer):
 
     encodings.update({'start_positions': start_positions, 'end_positions': end_positions})
 
+def encode_tags(labels, encodings):
+    encoded_labels = []
+    for doc_labels, doc_offset in zip(labels, encodings.offset_mapping):
+        # create an empty array of -100
+        doc_enc_labels = np.ones(len(doc_offset),dtype=int) * -100
+        arr_offset = np.array(doc_offset)
+
+        # set labels whose first offset position is 0 and the second is not 0
+        doc_enc_labels[(arr_offset[:,0] == 0) & (arr_offset[:,1] != 0)] = doc_labels
+        encoded_labels.append(doc_enc_labels.tolist())
+
+    return encoded_labels
