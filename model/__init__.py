@@ -1,1 +1,1 @@
-from .model import CoNLLDataModule
+from .model import QAModel

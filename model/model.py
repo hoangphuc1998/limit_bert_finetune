@@ -52,11 +52,11 @@ class QAModel(pl.LightningModule):
             mask = label != -100
             pred = pred[mask]
             label = label[mask]
-            if len(label)>0:
-                pred_labels.append(np.vectorize(self.ner_map)(pred.cpu().numpy()))
-                gold_labels.append(np.vectorize(self.ner_map)(label.cpu().numpy()))
+            pred_labels.append(np.vectorize(self.ner_map.get)(pred.cpu().numpy()).tolist())
+            gold_labels.append(np.vectorize(self.ner_map.get)(label.cpu().numpy()).tolist())
         self.metric.add_batch(predictions = pred_labels, references=gold_labels)
         self.log("val/loss", loss, prog_bar=False, logger=True, on_epoch=True, on_step=False)
+        self.log("val/num_samples", len(pred_labels), prog_bar=False, logger=True, on_step=True, on_epoch=False)
 
     def validation_epoch_end(self, outputs):
         score = self.metric.compute()
@@ -65,7 +65,6 @@ class QAModel(pl.LightningModule):
             self.log(f"val/{entity}-F1", score[entity]['f1'], logger=True)
         self.log("val/F1", score['overall_f1'], logger=True)
         print("\nF1: " + str(score['overall_f1']))
-        self.metric = datasets.load_metric('seqeval')
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW([{'params': layer.parameters(), 'lr':self.config.bert_lr if 'bert' in name else self.config.lr}
