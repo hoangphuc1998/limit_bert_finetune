@@ -54,12 +54,17 @@ class QAModel(pl.LightningModule):
             label = label[mask]
             pred_labels.append(np.vectorize(self.ner_map.get)(pred.cpu().numpy()).tolist())
             gold_labels.append(np.vectorize(self.ner_map.get)(label.cpu().numpy()).tolist())
-        self.metric.add_batch(predictions = pred_labels, references=gold_labels)
+        # self.metric.add_batch(predictions = pred_labels, references=gold_labels)
         self.log("val/loss", loss, prog_bar=False, logger=True, on_epoch=True, on_step=False)
-        self.log("val/num_samples", len(pred_labels), prog_bar=False, logger=True, on_step=True, on_epoch=False)
+        return {"pred_labels": pred_labels, "gold_labels": gold_labels}
 
     def validation_epoch_end(self, outputs):
-        score = self.metric.compute()
+        pred_labels = []
+        gold_labels = []
+        for output in outputs:
+            pred_labels+=output["pred_labels"]
+            gold_labels+=output["gold_labels"]
+        score = self.metric.compute(predictions = pred_labels, references=gold_labels)
         for entity in ['PER', 'ORG', 'LOC', 'MISC']:
             print(f"val/{entity}-F1: {score[entity]['f1']:.3f}", end=', ')
             self.log(f"val/{entity}-F1", score[entity]['f1'], logger=True)
