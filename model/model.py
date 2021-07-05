@@ -1,7 +1,7 @@
 import pytorch_lightning as pl
 import datasets
 import torch
-from transformers import AutoModelForTokenClassification
+from transformers import AutoModelForTokenClassification, get_cosine_schedule_with_warmup
 import torchmetrics
 
 class QAModel(pl.LightningModule):
@@ -12,6 +12,12 @@ class QAModel(pl.LightningModule):
         self.tokenizer = tokenizer
         self.metric = torchmetrics.F1(num_classes=config.num_labels)
         self.freeze = False
+    
+    def setup(self, stage):
+        if stage == 'fit':
+            total_devices = self.hparams.n_gpus * self.hparams.n_nodes
+            train_batches = len(self.train_dataloader()) // total_devices
+            self.train_steps = (self.hparams.epochs * train_batches) // self.hparams.accumulate_grad_batches
     
     def forward(self, contexts, questions):
         '''
@@ -40,7 +46,13 @@ class QAModel(pl.LightningModule):
         outputs = self.model(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
         loss, logits = outputs.loss, outputs.logits
         preds = torch.argmax(logits, dim=-1)
-        self.metric.update(preds, labels)
+        for pred, label in zip(preds, labels):
+            mask = label != -100
+            pred = pred[mask]
+            label = label[mask]
+            if len(label)>0:
+                self.metric.update(pred, label)
+        #self.metric.update(preds, labels)
         self.log("val/loss", loss, prog_bar=False, logger=True, on_epoch=True, on_step=False)
 
     def validation_epoch_end(self, outputs):
@@ -50,8 +62,10 @@ class QAModel(pl.LightningModule):
         self.metric.reset()
 
     def configure_optimizers(self):
-        optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.config.lr)
-        return optimizer
+        optimizer = torch.optim.AdamW([{'params': layer.parameters(), 'lr':self.config.bert_lr if 'bert' in name else self.config.lr}
+                                        for name, layer in self.model.named_children()])
+        scheduler = get_cosine_schedule_with_warmup(optimizer, num_warmup_steps=self.config.num_warmup_steps, num_training_steps=self.train_steps)
+        return [optimizer], [scheduler]
 
     def freeze_model(self):
         if self.freeze == False:

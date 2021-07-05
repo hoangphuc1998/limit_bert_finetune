@@ -1,1 +1,1 @@
-from .datamodule import SquadDataModule
+from .datamodule import CoNLLDataModule

@@ -83,4 +83,4 @@ def encode_tags(labels, encodings):
         doc_enc_labels[(arr_offset[:,0] == 0) & (arr_offset[:,1] != 0)] = doc_labels
         encoded_labels.append(doc_enc_labels.tolist())
 
-    return encoded_labels
+    return np.array(encoded_labels)
