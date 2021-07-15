@@ -4,14 +4,11 @@ class QAConfig():
     def __init__(self):
         self.parser = argparse.ArgumentParser()
 
-        # Dataset
-        self.parser.add_argument("--train_file", type=str, default="/content/squad/train-v2.0.json", help="Train json file")
-        self.parser.add_argument("--val_file", type=str, default="/content/squad/dev-v2.0.json", help="Validation json file")
-
         # Model
         self.parser.add_argument("--model_type", type=str, default="bert-large-uncased", help="Model type")
-        self.parser.add_argument("--num_labels", type=int, default=9, help="Number of NER tags")
+        self.parser.add_argument("--num_classes", type=int, default=3, help="Number of NER tags")
         self.parser.add_argument("--max_length", type=int, default=170, help="Max sequence length")
+        self.parser.add_argument("--dropout", type=float, default=0.1, help="Dropout of hidden layer in bert")
 
         # Training
         self.parser.add_argument("--seed", type=int, default=42, help="Random seed number")
@@ -22,6 +19,7 @@ class QAConfig():
         self.parser.add_argument("--freeze_steps", type=int, default=500, help="Freeze main model to train qa head")
         self.parser.add_argument("--num_warmup_steps", type=int, default=1500, help="Number of warmup steps")
         self.parser.add_argument("--grad_clip", type=float, default=5.0, help="Gradient clipping value")
+        self.parser.add_argument("--alpha", type=float, default=1.0, help="Weight between classification and rationale loss")
 
         # Save folder
         self.parser.add_argument("--save_folder", type=str, default="/content/drive/MyDrive/NLP/")

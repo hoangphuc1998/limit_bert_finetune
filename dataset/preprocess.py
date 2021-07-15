@@ -1,86 +1,30 @@
-import json
-from pathlib import Path
 import numpy as np
+from collections import Counter
 
-def read_squad(path, training=True):
-    '''
-    This function is written by Huggingface team
-    https://huggingface.co/transformers/custom_datasets.html
-    '''
-    path = Path(path)
-    with open(path, 'rb') as f:
-        squad_dict = json.load(f)
-
-    contexts = []
-    questions = []
-    answers = []
-    ids = []
-    for group in squad_dict['data']:
-        for passage in group['paragraphs']:
-            context = passage['context']
-            for qa in passage['qas']:
-                question = qa['question']
-                if training:
-                    for answer in qa['answers']:
-                        contexts.append(context)
-                        questions.append(question)
-                        answers.append(answer)
-                        ids.append(qa['id'])
-                else:
-                    contexts.append(context)
-                    questions.append(question)
-                    answers.append(qa['answers'])
-                    ids.append(qa['id'])
-    return contexts, questions, answers, ids
-
-def add_end_idx(answers, contexts):
-    '''
-    This function is written by Huggingface team
-    https://huggingface.co/transformers/custom_datasets.html
-    '''
-    for answer, context in zip(answers, contexts):
-        gold_text = answer['text']
-        start_idx = answer['answer_start']
-        end_idx = start_idx + len(gold_text)
-
-        # sometimes squad answers are off by a character or two – fix this
-        if context[start_idx:end_idx] == gold_text:
-            answer['answer_end'] = end_idx
-        elif context[start_idx-1:end_idx-1] == gold_text:
-            answer['answer_start'] = start_idx - 1
-            answer['answer_end'] = end_idx - 1     # When the gold label is off by one character
-        elif context[start_idx-2:end_idx-2] == gold_text:
-            answer['answer_start'] = start_idx - 2
-            answer['answer_end'] = end_idx - 2     # When the gold label is off by two characters
-
-def add_token_positions(encodings, answers, tokenizer):
-    '''
-    This function is written by Huggingface team
-    https://huggingface.co/transformers/custom_datasets.html
-    '''
-    start_positions = []
-    end_positions = []
-    for i in range(len(answers)):
-        start_positions.append(encodings.char_to_token(i, answers[i]['answer_start']))
-        end_positions.append(encodings.char_to_token(i, answers[i]['answer_end'] - 1))
-
-        # if start position is None, the answer passage has been truncated
-        if start_positions[-1] is None:
-            start_positions[-1] = tokenizer.model_max_length
-        if end_positions[-1] is None:
-            end_positions[-1] = tokenizer.model_max_length
-
-    encodings.update({'start_positions': start_positions, 'end_positions': end_positions})
-
-def encode_tags(labels, encodings):
-    encoded_labels = []
-    for doc_labels, doc_offset in zip(labels, encodings.offset_mapping):
-        # create an empty array of -100
-        doc_enc_labels = np.ones(len(doc_offset),dtype=int) * -100
-        arr_offset = np.array(doc_offset)
-
-        # set labels whose first offset position is 0 and the second is not 0
-        doc_enc_labels[(arr_offset[:,0] == 0) & (arr_offset[:,1] != 0)] = doc_labels
-        encoded_labels.append(doc_enc_labels.tolist())
-
-    return np.array(encoded_labels)
+def read_hatexplain(data):
+    tokens = []
+    labels = []
+    rationales = []
+    for item in data:
+        if len(item['post_tokens'])>128:
+            continue
+        user_indices = [i for i, x in enumerate(item['post_tokens']) if x=='<user>']
+        token = [x for i, x in enumerate(item['post_tokens']) if i not in user_indices]
+        label_counter = Counter(item['annotators']['label'])
+        majority_label = label_counter.most_common(1)[0]
+        label = 1
+        if majority_label[1]==1:
+            continue
+        else:
+            label = majority_label[0]
+        annotator_rationale = item['rationales']
+        rationale=None
+        if len(annotator_rationale)==0:
+            rationale = np.zeros(len(item['post_tokens']), dtype='int')
+        else:
+            rationale=np.array(annotator_rationale[0])
+        rationale = np.delete(rationale, user_indices)
+        tokens.append(token)
+        labels.append(label)
+        rationales.append(rationale)
+    return tokens, labels, rationales
