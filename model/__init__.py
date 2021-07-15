@@ -1,1 +1,1 @@
-from .model import QAModel
+from .model import HateXplainModel

@@ -1,1 +1,1 @@
-from .datamodule import CoNLLDataModule
+from .datamodule import HateXplainDataModule
