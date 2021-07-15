@@ -21,7 +21,7 @@ class HateXplainModel(pl.LightningModule):
             train_batches = len(self.train_dataloader())
             self.train_steps = (self.config.epochs * train_batches)
     
-    def forward(self, contexts, questions):
+    def forward(self, sentences, tokenizer):
         '''
         Not implemented yet
         '''
@@ -62,7 +62,8 @@ class HateXplainModel(pl.LightningModule):
         self.log("val/rationale_F1", self.rationale_metric, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         self.log("val/loss", loss, prog_bar=False, logger=True, on_epoch=True, on_step=False)
 
-
+    def validation_epoch_end(self, outputs):
+        print(f"Cls F1: {self.cls_metric.compute().item():.3f}, Rationale F1: {self.rationale_metric.compute().item():.3f}")
     # def validation_epoch_end(self, outputs):
     #     pred_labels = []
     #     gold_labels = []

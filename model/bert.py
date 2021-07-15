@@ -6,9 +6,10 @@ import torch
 class BertModelForHateSpeech(nn.Module):
     def __init__(self, config):
         super().__init__()
+        self.config = config
         self.bert = AutoModel.from_pretrained(config.model_type)
-        self.classifier = nn.Linear(self.bert.hidden_size, config.num_classes)
-        self.rationale_head = nn.Linear(self.bert.hidden_size, 2)
+        self.classifier = nn.Linear(self.bert.config.hidden_size, config.num_classes)
+        self.rationale_head = nn.Linear(self.bert.config.hidden_size, 2)
         self.dropout = nn.Dropout(config.dropout)
         self.init_weights()
     

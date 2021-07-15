@@ -8,8 +8,9 @@ def read_hatexplain(data):
     for item in data:
         if len(item['post_tokens'])>128:
             continue
-        user_indices = [i for i, x in enumerate(item['post_tokens']) if x=='<user>']
-        token = [x for i, x in enumerate(item['post_tokens']) if i not in user_indices]
+        #invalid_indices = [i for i, x in enumerate(item['post_tokens']) if x=='\u200d' or x=='️' or x=='\u202c' or x=='\u202a']
+        invalid_indices = [i for i, x in enumerate(item['post_tokens']) if len((x.encode('ascii', 'ignore')).decode("utf-8"))==0]
+        token = [x for i, x in enumerate(item['post_tokens']) if i not in invalid_indices]
         label_counter = Counter(item['annotators']['label'])
         majority_label = label_counter.most_common(1)[0]
         label = 1
@@ -23,7 +24,7 @@ def read_hatexplain(data):
             rationale = np.zeros(len(item['post_tokens']), dtype='int')
         else:
             rationale=np.array(annotator_rationale[0])
-        rationale = np.delete(rationale, user_indices)
+        rationale = np.delete(rationale, invalid_indices)
         tokens.append(token)
         labels.append(label)
         rationales.append(rationale)

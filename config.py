@@ -5,7 +5,7 @@ class HateXplainConfig():
         self.parser = argparse.ArgumentParser()
 
         # Model
-        self.parser.add_argument("--model_type", type=str, default="bert-large-uncased", help="Model type")
+        self.parser.add_argument("--model_type", type=str, default="bert-base-uncased", help="Model type")
         self.parser.add_argument("--num_classes", type=int, default=3, help="Number of NER tags")
         self.parser.add_argument("--max_length", type=int, default=128, help="Max sequence length")
         self.parser.add_argument("--dropout", type=float, default=0.1, help="Dropout of hidden layer in bert")
@@ -20,6 +20,7 @@ class HateXplainConfig():
         self.parser.add_argument("--num_warmup_steps", type=int, default=1500, help="Number of warmup steps")
         self.parser.add_argument("--grad_clip", type=float, default=2.0, help="Gradient clipping value")
         self.parser.add_argument("--alpha", type=float, default=1.0, help="Weight between classification and rationale loss")
+        self.parser.add_argument("--num_workers", type=int, default=0, help="Number of workers")
 
         # Save folder
         self.parser.add_argument("--save_folder", type=str, default="/content/drive/MyDrive/NLP/")

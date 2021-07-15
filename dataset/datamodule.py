@@ -16,10 +16,10 @@ class HateXplainDataModule(pl.LightningDataModule):
             self.test_dataset = HateXplainDataset(self.tokenizer, split="test", max_length=self.config.max_length)
     
     def train_dataloader(self):
-        return DataLoader(self.train_dataset, batch_size=self.config.bz, shuffle=True)
+        return DataLoader(self.train_dataset, batch_size=self.config.bz, shuffle=True, num_workers=self.config.num_workers)
     
     def val_dataloader(self):
-        return DataLoader(self.val_dataset, batch_size=64, shuffle=False)
+        return DataLoader(self.val_dataset, batch_size=64, shuffle=False, num_workers=self.config.num_workers)
     
     def test_dataloader(self):
-        return DataLoader(self.test_dataset, batch_size=64, shuffle=False)
+        return DataLoader(self.test_dataset, batch_size=64, shuffle=False, num_workers=self.config.num_workers)
