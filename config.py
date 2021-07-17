@@ -19,13 +19,13 @@ class HateXplainConfig():
         self.parser.add_argument("--freeze_steps", type=int, default=500, help="Freeze main model to train qa head")
         self.parser.add_argument("--num_warmup_steps", type=int, default=1500, help="Number of warmup steps")
         self.parser.add_argument("--grad_clip", type=float, default=2.0, help="Gradient clipping value")
-        self.parser.add_argument("--alpha", type=float, default=1.0, help="Weight between classification and rationale loss")
+        self.parser.add_argument("--alpha", type=float, default=10.0, help="Weight between classification and rationale loss")
         self.parser.add_argument("--num_workers", type=int, default=0, help="Number of workers")
 
         # Save folder
         self.parser.add_argument("--save_folder", type=str, default="/content/drive/MyDrive/NLP/")
         self.parser.add_argument("--project", type=str, default="hatexplain", help="Wandb project name")
-        self.parser.add_argument("--exp", type=str, default="bert-large-exp1", help="Wandb experiment name")
+        self.parser.add_argument("--exp", type=str, default="bert-large-exp2", help="Wandb experiment name")
 
     def parse_args(self):
         return self.parser.parse_known_args()[0]
