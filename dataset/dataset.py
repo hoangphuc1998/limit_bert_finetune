@@ -3,26 +3,6 @@ import numpy as np
 from .preprocess import *
 import datasets
 
-class SquadDataset(torch.utils.data.Dataset):
-    def __init__(self, json_file, tokenizer, training=True, max_length=128):
-        super().__init__()
-        self.training = training
-        self.contexts, self.questions, self.answers, self.ids = read_squad(json_file, training)
-        self.encodings = tokenizer(self.contexts, self.questions, truncation=True, padding=True, max_length=max_length)
-        if training:
-            add_end_idx(self.answers, self.contexts)
-            add_token_positions(self.encodings, self.answers, tokenizer)
-    
-    def __getitem__(self, idx):
-        d = {key: torch.tensor(value[idx]) for key, value in self.encodings.items()}
-        if not self.training:
-            d["id"] = self.ids[idx]
-            d['answers'] = self.answers[idx]
-        return d
-
-    def __len__(self):
-        return len(self.encodings["input_ids"])
-
 class CoNLLDataset(torch.utils.data.Dataset):
     def __init__(self, tokenizer, split="train", max_length=128):
         self.tokenizer = tokenizer

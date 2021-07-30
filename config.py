@@ -1,6 +1,6 @@
 import argparse
 
-class QAConfig():
+class NERConfig():
     def __init__(self):
         self.parser = argparse.ArgumentParser()
 

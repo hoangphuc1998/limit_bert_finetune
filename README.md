@@ -1,2 +1,2 @@
-# squad_qa
-Question Answering with SQuAD2.0 dataset
+# Named Entity Recognition
+Named Entity Recognition with CoNLL-2003 shared tasks
