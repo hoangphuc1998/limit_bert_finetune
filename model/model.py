@@ -21,11 +21,32 @@ class HateXplainModel(pl.LightningModule):
             train_batches = len(self.train_dataloader())
             self.train_steps = (self.config.epochs * train_batches)
     
-    def forward(self, sentences, tokenizer):
-        '''
-        Not implemented yet
-        '''
-        raise NotImplementedError
+    def forward(self, sentence):
+        encoding = self.tokenizer(sentence.split(), is_split_into_words=True, return_offsets_mapping=True, return_tensors='pt')
+        output = self.model(encoding.input_ids, encoding.attention_mask)
+        cls_logits = output['cls_logits']
+        rationale_logits = output['rationale_logits']
+        cls_label = torch.argmax(cls_logits, dim=-1)[0].item()
+        rationale_labels = torch.argmax(rationale_logits[0], dim=-1)
+        offset_mapping = encoding.offset_mapping[0]
+        input_ids = encoding.input_ids[0]
+        rationale_list = []
+        rationale=[]
+        is_continuous=False
+        i=1
+        print(rationale_labels)
+        while i<=len(input_ids)-1:
+            if (rationale_labels[i]==1 and offset_mapping[i][0]==0) or (offset_mapping[i][0]!=0 and is_continuous):
+                is_continuous=True
+                rationale.append(input_ids[i])
+            elif len(rationale)>0:
+                is_continuous=False
+                rationale_list.append(self.tokenizer.convert_tokens_to_string(self.tokenizer.convert_ids_to_tokens(rationale)))
+                rationale=[]
+            i+=1
+        if len(rationale)>0:
+            rationale_list.append(self.tokenizer.convert_tokens_to_string(self.tokenizer.convert_ids_to_tokens(rationale)))
+        return cls_label, rationale_list
 
     def training_step(self, batch, batch_idx):
         if self.global_step < self.config.freeze_steps:
@@ -64,18 +85,27 @@ class HateXplainModel(pl.LightningModule):
 
     def validation_epoch_end(self, outputs):
         print(f"Cls F1: {self.cls_metric.compute().item():.3f}, Rationale F1: {self.rationale_metric.compute().item():.3f}")
-    # def validation_epoch_end(self, outputs):
-    #     pred_labels = []
-    #     gold_labels = []
-    #     for output in outputs:
-    #         pred_labels+=output["pred_labels"]
-    #         gold_labels+=output["gold_labels"]
-    #     score = self.metric.compute(predictions = pred_labels, references=gold_labels)
-    #     for entity in ['PER', 'ORG', 'LOC', 'MISC']:
-    #         print(f"val/{entity}-F1: {score[entity]['f1']:.3f}", end=', ')
-    #         self.log(f"val/{entity}-F1", score[entity]['f1'], logger=True)
-    #     self.log("val/F1", score['overall_f1'], logger=True)
-    #     print("\nF1: " + str(score['overall_f1']))
+
+    def test_step(self, batch, batch_idx):
+        input_ids = batch["input_ids"]
+        attention_mask = batch["attention_mask"]
+        cls_labels = batch["cls"].detach()
+        rationale_labels = batch["rationale"].detach()
+        outputs = self.model(input_ids=input_ids, attention_mask=attention_mask, cls_labels=cls_labels, rationale_labels=rationale_labels)
+        loss, cls_logits, rationale_logits = outputs['loss'], outputs['cls_logits'], outputs['rationale_logits']
+        cls_preds = torch.argmax(cls_logits, dim=-1).detach()
+        rationale_preds = torch.argmax(rationale_logits, dim=-1).detach()
+
+        mask = rationale_labels.view(-1)!=-100
+        rationale_preds = rationale_preds.view(-1)[mask]
+        rationale_labels = rationale_labels.view(-1)[mask]
+
+        # self.metric.add_batch(predictions = pred_labels, references=gold_labels)
+        self.cls_metric(cls_preds, cls_labels)
+        self.rationale_metric(rationale_preds, rationale_labels)
+
+    def test_epoch_end(self, outputs):
+        print(f"Cls F1: {self.cls_metric.compute().item():.3f}, Rationale F1: {self.rationale_metric.compute().item():.3f}")
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW([{'params': layer.parameters(), 'lr':self.config.bert_lr if 'bert' in name else self.config.lr}
