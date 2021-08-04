@@ -1,5 +1,6 @@
 # Named Entity Recognition
 Named Entity Recognition with CoNLL-2003 shared tasks
+- Run `pip install -r requirements.txt` to install all dependencies.
 - To train model, simply run:
 ```
 python train.py
